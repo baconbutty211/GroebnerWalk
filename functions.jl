@@ -11,10 +11,15 @@ end
 function lift(H', ord', H, G, ord)
     G'' = [witness(h', H, G, ord) for h' in H']
     #println(G'')
-    G' = groebner_basis(G'', ordering=ord')
+    G' = reduce(G'', ordering=ord') # Reduce initially?
     return G'
 end
 
-function flip()
+function flip(G, H, v, ord)
+    I = ideal(H) #w inital ideal of <H>?
+    ord_w = weight_ordering(w, lex(R)) # R?
+    ord_wv = weight_ordering(v, ord_w)
 
+    H' = groebner_basis(I, ordering=ord_wv)
+    G' = lift(H', ord_wv, H, G, ord)
 end
