@@ -8,8 +8,11 @@ function witness(h, H, G, ord)
     return sum([qi * gi for (qi, gi) in zip(Q, G)])
 end
 
-function lift()
-
+function lift(H', ord', H, G, ord)
+    G'' = [witness(h', H, G, ord) for h' in H']
+    #println(G'')
+    G' = groebner_basis(G'', ordering=ord')
+    return G'
 end
 
 function flip()
