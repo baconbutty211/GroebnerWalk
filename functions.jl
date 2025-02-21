@@ -27,4 +27,5 @@ function flip(G, H, v, ord)
 
     Hprime = groebner_basis(I, ordering=ord_wv)
     Gprime = lift(Hprime, ord_wv, H, G, ord)
+    return (Gprime, ord_wv)
 end
