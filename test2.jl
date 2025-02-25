@@ -12,7 +12,12 @@ G = standard_basis(I, ordering=ord)
 H = initial(collect(G), ord, ZZ.(w))
 
 
-print(G[1] == witness(H[1], H, G, ord))
-print(G[2] == witness(H[2], H, G, ord))
-print(G[3] == witness(H[3], H, G, ord))
-print(G[4] == witness(H[4], H, G, ord))
+println(G[1] == witness(H[1], H, G, ord))
+println(G[2] == witness(H[2], H, G, ord))
+println(G[3] == witness(H[3], H, G, ord))
+println(G[4] == witness(H[4], H, G, ord))
+
+println(G[1] == witness_optimised(H[1], H, G, ord))
+println(G[2] == witness_optimised(H[2], H, G, ord))
+println(G[3] == witness_optimised(H[3], H, G, ord))
+println(G[4] == witness_optimised(H[4], H, G, ord))

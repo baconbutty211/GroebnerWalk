@@ -16,3 +16,6 @@ println(u)
 
 print(G[1] == witness(h_1, H, G, ord))
 print(G[2] == witness(h_2, H, G, ord))
+
+print(G[1] == witness_optimised(h_1, H, G, ord))
+print(G[2] == witness_optimised(h_2, H, G, ord))
