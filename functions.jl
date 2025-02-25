@@ -25,7 +25,7 @@ function flip(G, H, v, ord)
     ord_w = weight_ordering(w, lex(R)) # R?
     ord_wv = weight_ordering(v, ord_w)
 
-    Hprime = groebner_basis(I, ordering=ord_wv)
+    Hprime = standard_basis(I, ordering=ord_wv)
     Gprime = lift(Hprime, ord_wv, H, G, ord)
     return (Gprime, ord_wv)
 end
