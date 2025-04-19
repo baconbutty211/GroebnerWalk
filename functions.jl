@@ -12,14 +12,14 @@ function witness_optimised(h, H, G, ord)
 
     # Assume first entry of H is a constant integer h0
     @req Oscar.is_constant(H[1]) "H[1] is not a constant polynomial"
-    m = coeff(H[1], 1) # 1st coefficient of H[1] is the constant (for type purposes)
+    p = coeff(H[1], 1) # 1st coefficient of H[1] is the constant (for type purposes)
 
     R = parent(h)
     @req typeof(R) == Oscar.ZZMPolyRing "h is not an integer polynomial (in ZZ[x1, ..., xn])"
 
-    S, _vars = polynomial_ring(GF(m), nvars(R)) # Create polynomial ring over finite field mod h0
+    S, _vars = polynomial_ring(GF(p), nvars(R)) # Create polynomial ring over finite field mod h0
 
-    phi = hom(R, S, c -> GF(m)(c), gens(S)) # homomorphism from R to S
+    phi = hom(R, S, c -> GF(p)(c), gens(S)) # homomorphism from R to S
     hbar = phi(h) # Convert h to Finite field mod h0
     Hbar = [phi(_h) for _h in H[2:end]] # Convert H\{h0} to Finite field mod h0
 
