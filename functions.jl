@@ -25,7 +25,7 @@ function witness_optimised(h, H, G, ord)
 
     q0 = div(h, H[1]) # Divide h by h0 to get q0
 
-    u, Q, r = reduce_with_quotients_and_unit(hbar, Hbar, ordering=ord) # Apply division algorithm to h w.r.t. H\{h0} to get {q1, ..., qn} (in finite field for performane reasons)
+    u, Q, r = reduce_with_quotients_and_unit(hbar, Hbar, ordering=ord) # Apply division algorithm to h w.r.t. H\{h0} to get {q1, ..., qn} (in finite field for performance reasons)
     @req iszero(r) "Remainder is not zero"
     @req isone(u) "Unit is not one"
 
