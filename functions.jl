@@ -10,11 +10,6 @@ function witness_optimised(h, H, G, ord)
     # Lift q1, ..., qn back to original ring (ZZ[x1, ..., xn]) h = q0*h0 + q1*h1 + ... qn*hn
     # return g = q0*g0 + q1*g1 + ... qn*gn
 
-    #If H contains multiple integers:
-    #println(H[1])
-    #constants = filter(Oscar.is_constant, H)
-    #Hprime = filter(!Oscar.is_constant, H)
-
     # Assume first entry of H is a constant integer h0
     @req Oscar.is_constant(H[1]) "H[1] is not a constant polynomial"
     m = coeff(H[1], 1) # 1st coefficient of H[1] is the constant (for type purposes)
@@ -22,7 +17,7 @@ function witness_optimised(h, H, G, ord)
     R = parent(h)
     @req typeof(R) == Oscar.ZZMPolyRing "h is not an integer polynomial (in ZZ[x1, ..., xn])"
 
-    S, _vars = polynomial_ring(GF(m), nvars(R)) # Create polynomial ring over finite field mod m
+    S, _vars = polynomial_ring(GF(m), nvars(R)) # Create polynomial ring over finite field mod h0
 
     phi = hom(R, S, c -> GF(m)(c), gens(S)) # homomorphism from R to S
     hbar = phi(h) # Convert h to Finite field mod h0
@@ -51,19 +46,28 @@ function witness(h, H, G, ord)
 end
 
 
-function lift_custom(Hprime, ordprime, H, G, ord)
-    Gprime = [witness(hprime, H, G, ord) for hprime in Hprime]
+function lift_custom(Hprime, ordprime, H, ord, G)
+    Gprimeprime = [witness(hprime, H, G, ord) for hprime in Hprime]
     #println(Gprimeprime)
-    Gprime = reduce(Gprimeprime, ordering=ordprime) # Reduce initially?
+    #Gprime = initially_reduce(Gprimeprime, ordering=ordprime) # No method for initial reduction is implemented in Oscar, See Algorithm 4.7 in https://arxiv.org/abs/1512.02662
+    Gprime = Gprimeprime
     return Gprime
 end
 
-function flip(G, H, v, ord)
-    I = ideal(H) #w inital ideal of <H>?
-    ord_w = weight_ordering(w, lex(R)) # R?
+function flip(G, H, v, ord_w::Oscar.weight_ordering)
+    @req typeof(ord_w) == Oscar.weight_ordering "ord_w is not a weight ordering"
+
+    w = matrix(ord_w)[1, :] # w is the weight vector of the ordering
+    #@req length(w) = num gens in R
+    @req length(w) == length(v) "Length of weight vector w must be equal to v"
+
+    @req length(G) == length(H) "Length of G and H must be equal"
+    @req H = initial(collect(G), ord_w, ZZ.(w)) # H = in_w(G), H are the initial forms of G w.r.t. w
+
+    I = ideal(H)
     ord_wv = weight_ordering(v, ord_w)
 
     Hprime = standard_basis(I, ordering=ord_wv)
-    Gprime = lift_custom(Hprime, ord_wv, H, G, ord)
+    Gprime = lift_custom(Hprime, ord_wv, H, ord, G)
     return (Gprime, ord_wv)
 end
