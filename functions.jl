@@ -54,7 +54,7 @@ function lift_custom(Hprime, ordprime, H, ord, G)
     return Gprime
 end
 
-function flip(G, H, v, ord_w::Oscar.weight_ordering)
+function flip(G, H, v, ord_w)
     @req typeof(ord_w) == Oscar.weight_ordering "ord_w is not a weight ordering"
 
     w = matrix(ord_w)[1, :] # w is the weight vector of the ordering
@@ -62,7 +62,7 @@ function flip(G, H, v, ord_w::Oscar.weight_ordering)
     @req length(w) == length(v) "Length of weight vector w must be equal to v"
 
     @req length(G) == length(H) "Length of G and H must be equal"
-    @req H = initial(collect(G), ord_w, ZZ.(w)) # H = in_w(G), H are the initial forms of G w.r.t. w
+    @req H == initial(collect(G), ord_w, ZZ.(w)) "H is not the initial form of G w.r.t. w"
 
     I = ideal(H)
     ord_wv = weight_ordering(v, ord_w)
