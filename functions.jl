@@ -58,7 +58,7 @@ function flip(G, H, v, ord_w)
     @req typeof(ord_w) == Oscar.weight_ordering "ord_w is not a weight ordering"
 
     w = matrix(ord_w)[1, :] # w is the weight vector of the ordering
-    #@req length(w) = num gens in R
+    @req length(w) == nvars(parent(H[1])) "Length of weight vector w is not equal to number of variables in the polynomial ring"
     @req length(w) == length(v) "Length of weight vector w must be equal to v"
 
     @req length(G) == length(H) "Length of G and H must be equal"
