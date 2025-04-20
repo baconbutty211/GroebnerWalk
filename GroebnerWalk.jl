@@ -1,2 +1,2 @@
 using Oscar
-include("./functions.jl")
+include("./xHomoGWalk.jl")

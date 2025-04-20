@@ -1,77 +1,57 @@
-using Oscar
+function lt(f::MPolyRingElem, ord::MonomialOrdering)
+    # Get the leading term of a polynomial f w.r.t. an ordering ord
+    # Input: f ∈ R[t, x1, ..., xn], ord a t-local monomial ordering on R
+    # Output: lt(f) ∈ R[t, x1, ..., xn] is the leading term of f w.r.t. ord
+    @req length(f) > 0 "Number of terms is not greater than 0"
 
-function witness_optimised(h, H, G, ord)
-    # Assume first entry of H is a constant integer h0
-    # Convert H\{h0} to Finite field mod h0
-
-    # Divide h by h0 to get q0
-    # Apply division algorithm to h w.r.t. H\{h0} to get {q1, ..., qn}
-
-    # Lift q1, ..., qn back to original ring (ZZ[x1, ..., xn]) h = q0*h0 + q1*h1 + ... qn*hn
-    # return g = q0*g0 + q1*g1 + ... qn*gn
-
-    # Assume first entry of H is a constant integer h0
-    @req Oscar.is_constant(H[1]) "H[1] is not a constant polynomial"
-    p = coeff(H[1], 1) # 1st coefficient of H[1] is the constant (for type purposes)
-
-    R = parent(h)
-    @req typeof(R) == Oscar.ZZMPolyRing "h is not an integer polynomial (in ZZ[x1, ..., xn])"
-
-    S, _vars = polynomial_ring(GF(p), nvars(R)) # Create polynomial ring over finite field mod h0
-
-    phi = hom(R, S, c -> GF(p)(c), gens(S)) # homomorphism from R to S
-    hbar = phi(h) # Convert h to Finite field mod h0
-    Hbar = [phi(_h) for _h in H[2:end]] # Convert H\{h0} to Finite field mod h0
-
-    q0 = div(h, H[1]) # Divide h by h0 to get q0
-
-    u, Q, r = reduce_with_quotients_and_unit(hbar, Hbar, ordering=ord) # Apply division algorithm to h w.r.t. H\{h0} to get {q1, ..., qn} (in finite field for performance reasons)
-    @req iszero(r) "Remainder is not zero"
-    @req isone(u) "Unit is not one"
-
-    phi_inv = hom(S, R, c -> lift(ZZ, c), gens(R)) # homomorphism from S to R
-    Q = [phi_inv(q) for q in Q] # Lift q1, ..., qn back to original ring (ZZ[x1, ..., xn])
-    Q = pushfirst!(vec(Q), q0)
-
-    f = sum([qi * gi for (qi, gi) in zip(Q, G)]) # g = q0*g0 + q1*g1 + ... qn*gn. sum(Q .* G) - (ERROR) Broadcasting for type Vector{ZZMPolyRingElem} not implemented
-    @req h == initial(f, ord, matrix(ord)[1, :]) "Initial form of Witness is not equal to h"
-    return f
+    lead_term = term(f, 1) # Get the first monomial of f
+    lead_mono = monomial(f, 1) # Get the first monomial of f
+    for i in 2:length(f)
+        t = term(f, i) # Extract the monomial part of the term
+        m = monomial(f, i) # Extract the monomial part of the term
+        if cmp(ord, m, lead_mono) == 1
+            lead_mono = m # Update the leading monomial
+            lead_term = t # Update the leading term
+        end
+    end
+    return lead_term
 end
 
-function witness(h, H, G, ord)
-    u, Q, r = reduce_with_quotients_and_unit(h, H, ordering=ord)
-
-    @req iszero(r) "Remainder is not zero"
-    @req isone(u) "Unit is not one"
-
-    f = sum([qi * gi for (qi, gi) in zip(Q, G)]) # sum(Q .* G) - (ERROR) Broadcasting for type Vector{ZZMPolyRingElem} not implemented
-    @req h == initial(f, ord, matrix(ord)[1, :]) "Initial form of Witness is not equal to h"
-    return f
+function lm(f::MPolyRingElem, ord::MonomialOrdering)
+    monomial(lt(f, ord), 1)
+end
+function lc(f::MPolyRingElem, ord::MonomialOrdering)
+    coeff(lt(f, ord), 1) # Get the coefficient of the leading term of f w.r.t. ord
 end
 
-
-function lift_custom(Hprime, ordprime, H, ord, G)
-    Gprimeprime = [witness(hprime, H, G, ord) for hprime in Hprime]
-    #println(Gprimeprime)
-    #Gprime = initially_reduce(Gprimeprime, ordering=ordprime) # No method for initial reduction is implemented in Oscar, See Algorithm 4.7 in https://arxiv.org/abs/1512.02662
-    Gprime = Gprimeprime
-    return Gprime
+function getXExponents(term::MPolyRingElem)
+    # Get the exponents of x1, ..., xn from a term in R[t, x1, ..., xn]
+    # Input: term ∈ R[t, x1, ..., xn]
+    # Output: exponents ∈ ZZ^n is the exponent vector of x1, ..., xn
+    @req length(exponents(term)) > 0 "Length of exponents is not greater than 0"
+    return collect(exponents(t))[1][2:end] # Return the exponent vector excluding t
 end
-
-function flip(G, H, v, ord_w)
-    @req typeof(ord_w) == Oscar.weight_ordering "ord_w is not a weight ordering"
-
-    w = matrix(ord_w)[1, :] # w is the weight vector of the ordering
-    @req length(w) == nvars(parent(H[1])) "Length of weight vector w is not equal to number of variables in the polynomial ring"
-    @req length(w) == length(v) "Length of weight vector w must be equal to v"
-
-    @req length(G) == length(H) "Length of G and H must be equal"
-    @req H == initial(collect(G), ord_w, ZZ.(w)) "H is not the initial form of G w.r.t. w"
-
-    I = ideal(H)
-    ord_wv = weight_ordering(v, ord_w)
-
-    Hprime = standard_basis(I, ordering=ord_wv)
-    Gprime = lift_custom(Hprime, ord_wv, H, ord, G)
-    return (Gprime, ord_wv)
+function collectXTerms(f::MPolyRingElem, alpha::Vector{Int})
+    # Assume t variable is the first variable in the polynomial ring
+    # Collect the terms of f with same  x1, ..., xn exponent vector alpha
+    # Input: f ∈ R[t, x1, ..., xn]
+    # Output: f_alpha ∈ R[t][x1,...,xn] is the monomial in R[t][x1,...,xn] with exponent vector alpha
+    @req length(f) > 0 "Number of terms is not greater than 0"
+    @req length(alpha) == nvars(parent(f)) - 1 "Length of alpha is not equal to 1 less than the number of variables in the polynomial ring"
+    g = 0 # Initialize g to 0
+    for t in terms(f)
+        if collect(exponents(t))[1][2:end] == alpha
+            g += t
+        end
+    end
+    return g # Return the sum of the terms with same exponent vector alpha
+end
+function collectLeadingXTerms(f::MPolyRingElem, ord::MonomialOrdering)
+    # Assume t variable is the first variable in the polynomial ring
+    # Collect the terms of f with same  x1, ..., xn exponent vector alpha
+    # Input: f ∈ R[t, x1, ..., xn]
+    # Output: f_alpha ∈ R[t][x1,...,xn] is the monomial in R[t][x1,...,xn] with exponent vector alpha
+    @req length(f) > 0 "Number of terms is not greater than 0"
+    alpha = getXExponents(lt(f, ord)) # Get the exponent vector of the leading term of f w.r.t. lex ordering
+    return collectXTerms(f, alpha) # Return the sum of the terms with same exponent vector alpha
 end
