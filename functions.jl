@@ -33,7 +33,9 @@ function witness_optimised(h, H, G, ord)
     Q = [phi_inv(q) for q in Q] # Lift q1, ..., qn back to original ring (ZZ[x1, ..., xn])
     Q = pushfirst!(vec(Q), q0)
 
-    return sum([qi * gi for (qi, gi) in zip(Q, G)]) # g = q0*g0 + q1*g1 + ... qn*gn. sum(Q .* G) - (ERROR) Broadcasting for type Vector{ZZMPolyRingElem} not implemented
+    f = sum([qi * gi for (qi, gi) in zip(Q, G)]) # g = q0*g0 + q1*g1 + ... qn*gn. sum(Q .* G) - (ERROR) Broadcasting for type Vector{ZZMPolyRingElem} not implemented
+    @req h == initial(f, ord, matrix(ord)[1, :]) "Initial form of Witness is not equal to h"
+    return f
 end
 
 function witness(h, H, G, ord)
@@ -42,7 +44,9 @@ function witness(h, H, G, ord)
     @req iszero(r) "Remainder is not zero"
     @req isone(u) "Unit is not one"
 
-    return sum([qi * gi for (qi, gi) in zip(Q, G)]) # sum(Q .* G) - (ERROR) Broadcasting for type Vector{ZZMPolyRingElem} not implemented
+    f = sum([qi * gi for (qi, gi) in zip(Q, G)]) # sum(Q .* G) - (ERROR) Broadcasting for type Vector{ZZMPolyRingElem} not implemented
+    @req h == initial(f, ord, matrix(ord)[1, :]) "Initial form of Witness is not equal to h"
+    return f
 end
 
 
