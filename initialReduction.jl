@@ -94,8 +94,8 @@ function sameDegreeReduce(G, p, ord)
 
             Q, r = reduce_with_quotients(g_ialpha_j, [t^(beta_j)], ordering=ord) # Apply division algorithm to g_jalpha_j w.r.t. g_i_lt
             if iszero(r) # Check if g_jalpha_j is divisible by t^beta_i
-                println("g_{$j}alpha_{$j} = ", g_jalpha_j, " is divisible by t^beta_{$j} = ", t^(beta_j))
-                println("g_{$i}alpha_{$j} = ", g_ialpha_j, " is divisible by t^beta_{$j} = ", t^(beta_j))
+                #println("g_{$j}alpha_{$j} = ", g_jalpha_j, " is divisible by t^beta_{$j} = ", t^(beta_j))
+                #println("g_{$i}alpha_{$j} = ", g_ialpha_j, " is divisible by t^beta_{$j} = ", t^(beta_j))
                 g_i = (g_jalpha_j / t^(beta_j)) * g_i - (g_ialpha_j / t^(beta_j)) * g_j # Reduce g_j by g_i
                 g_i = ptReduce(g_i, p, ord) # Reduce g_i w.r.t. p-t under >
                 G[i] = g_i # Update G[i] with the initially reduced g_i
@@ -104,4 +104,69 @@ function sameDegreeReduce(G, p, ord)
     end
 
     return G
+end
+
+function allAtOnceReduce(G, H, p, ord)
+    # Apply Algorithm 4.5 from https://arxiv.org/abs/1512.02662 to reduce G w.r.t. H under ord
+    # Input: G ∈ R[t, x1, ..., xn], H ∈ R[t, x1, ..., xn], p a prime number, ord a t-local monomial ordering on R
+    # Output: H' ∈ R[t, x1, ..., xn] is H initially reduced w.r.t. G, H, p-t under ord
+
+    d = sum(getXExponents(H[1])) # Get the degree of H[1] w.r.t. t
+    for h in H
+        @req lc(h, ord) == 1 "Leading coefficient of $h is not equal to 1" #(3)
+        for mono in monomials(h)
+            @req sum(getXExponents(mono)) == d "Degree of $mono in $h is not equal to d=$d" #(1)
+        end
+    end
+    for g in G
+        for mono in monomials(g)
+            @req sum(getXExponents(mono)) < d "Degree of $mono in $g is NOT < d=$d" #(2)
+        end
+    end
+    H_lm = [lm(h, ord) for h in H] # Get the leading terms of H w.r.t. ord
+    G_lm = [lm(g, ord) for g in G] # Get the leading terms of G w.r.t. ord
+    @req length(H_lm) == length(unique(H_lm)) "H contains duplicate elements" #(4) Check if H contains duplicate elements
+    @req intersect(H_lm, G_lm) == [] "H and G contain common elements" #(5) Check if H and G contain common elements
+
+    H = sameDegreeReduce(H, p, ord) # Apply sameDegreeReduce to H w.r.t. p-t under ord
+    E = []
+
+    T = [] # Initialize T to an empty list
+    for i in 1:length(H)
+        h = H[i] # Get the i-th element of H
+        h_lm = lm(h, ord) # Get the leading term of h w.r.t. ord
+        h_collected = collectCoefficients(h, ord) # Collect the coefficients of h
+        for (t_part, x_alpha) in h_collected
+            h_alpha_lm = lm(t_part, ord) # Get the leading term of t_part of h_ialpha * x^alpha 
+            if cmp(ord, h_alpha_lm * x_alpha, h_lm) == -1 # Check if LT(h_ialpha)x^alpha < LT(h_i)
+                push!(T, (h_alpha_lm * x_alpha, i))
+            end
+        end
+    end
+
+
+    while !isempty(T)
+        (s, i) = T[1]
+        # Find the maximum (s,i) in T, with s maximal
+        for j in 2:length(T)
+            if cmp(ord, T[j][1], s) == 1
+                (s, i) = T[j]
+            end
+        end
+
+        for g in G
+            g_lt = lt(g, ord) # Get the leading term of g w.r.t. ord
+            Q, r = reduce_with_quotients(s, [g_lt], ordering=ord) # Apply division algorithm to g w.r.t. s
+            if iszero(r) # Check if s is divisible by g
+                s_lm = lm(s, ord) # Get the leading monomial of s w.r.t. ord
+                g_lm = lm(g, ord) # Get the leading monomial of g w.r.t. ord
+                push!(E, (s_lm / g_lm) * g) # Add the leading monomial of LM(s)/LM(g) * g to E
+                H = sameDegreeReduce(union(E, H), p, ord) # Apply Algorithm 4.2 to E ∪ H
+                T = filter(t -> cmp(t[1], s_lm) == -1, T) # Remove all elements of T with index i
+            else
+                T = filter(t -> t != (s, i), T) # Remove (s,i) from T
+            end
+        end
+    end
+    return H # Return H which is initially reduced w.r.t. G, H, p-t under ord
 end
