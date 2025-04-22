@@ -29,6 +29,7 @@ function ptReduce(g, p, ord)
         g_primeprime = g_primeprime - g_primeprime_gamma # Subtract the leading x-terms of g'' from g''
     end
 
+    #@req isInitiallyReduced(g_prime, ord) "g_prime=$g_prime is not initially reduced w.r.t. p-t under ord=$ord" # Check if g' is initially reduced w.r.t. p-t under ord
     return g_prime # Return g' which is initially reduced wrt p-t under > (no term of tail(g') is divisible by p) with <p-t, g'> = <p-t, g> and LT(g')= LT(g)
 end
 
@@ -103,6 +104,7 @@ function sameDegreeReduce(G, p, ord)
         end
     end
 
+    @req isInitiallyReduced(G, ord) "G=$G is not initially reduced w.r.t. G=$G, $p-t under ord=$ord" #(3) Check if G is initially reduced w.r.t. G, p-t under ord
     return G
 end
 
@@ -168,5 +170,7 @@ function allAtOnceReduce(G, H, p, ord)
             end
         end
     end
+
+    @req isInitiallyReduced(H, ord) "H=$H is not initially reduced w.r.t. G=$G, H=$H, $p-t under ord=$ord" #(3) Check if H is initially reduced w.r.t. G, H, p-t under ord
     return H # Return H which is initially reduced w.r.t. G, H, p-t under ord
 end
