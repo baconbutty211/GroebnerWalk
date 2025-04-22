@@ -151,6 +151,42 @@ function sortByLeadingMonomial(F, ord::MonomialOrdering, ascending::Bool=false)
     return F_sorted # Return the sorted list of elements of F by their leading monomial w.r.t. ord
 end
 
+function minimise(G, ord)
+    # Minimise G w.r.t. ord
+    # Input: G ∈ R[t, x1, ..., xn], ord a t-local monomial ordering on R
+    # Output: G_min ∈ R[t, x1, ..., xn] is the minimised list of elements of G w.r.t. ord
+    @req length(G) > 0 "Number of terms is not greater than 0"
+    G = sortByLeadingMonomial(G, ord, true) # Sort G by their leading monomial w.r.t. ord
+    G_min = [] # Initialize G_min to empty list
+
+    G_lm = [(lm(G[i], ord), g) for g in G] # Get the leading terms of G w.r.t. ord
+    for (g_lm, i) in G_lm
+        G_minus_g_lm = filter(_lm -> _lm != g_lm, G_lm) # Get the leading terms of G without g
+        Q, r = reduce_with_quotients(g_lm, G_minus_g_lm, ordering=ord)
+        if r == g_lm # Check if g divides a term in g'
+            push!(G_min, g) # Add g to G_min if it does not divide a term in g'
+        end
+    end
+    return G_min # Return the minimised list of elements of G w.r.t. ord
+end
+
+function isMinimised(G, ord)
+    # Minimise G w.r.t. ord
+    # Input: G ∈ R[t, x1, ..., xn], ord a t-local monomial ordering on R
+    # Output: G_min ∈ R[t, x1, ..., xn] is the minimised list of elements of G w.r.t. ord
+    @req length(G) > 0 "Number of terms is not greater than 0"
+    G = sortByLeadingMonomial(G, ord, true) # Sort G by their leading monomial w.r.t. ord
+
+    G_lm = [lm(G[i], ord) for g in G] # Get the leading terms of G w.r.t. ord
+    for g_lm in G_lm
+        G_minus_g_lm = filter(_lm -> _lm != g_lm, G_lm) # Get the leading terms of G without g
+        Q, r = reduce_with_quotients(g_lm, G_minus_g_lm, ordering=ord)
+        if r != g_lm
+            return false
+        end
+    end
+    return true # Return the minimised list of elements of G w.r.t. ord
+end
 function isReduced(G, ord)
     # Check if G is reduced w.r.t. ord
     # Input: G ∈ R[t, x1, ..., xn], ord a t-local monomial ordering on R
