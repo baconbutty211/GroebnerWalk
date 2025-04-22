@@ -115,7 +115,7 @@ function allAtOnceReduce(G, H, p, ord)
 
     d = sum(getXExponents(H[1])) # Get the degree of H[1] w.r.t. t
     for h in H
-        @req lc(h, ord) == 1 "Leading coefficient of $h is not equal to 1" #(3)
+        @req lc(h, ord) == 1 "Leading coefficient of $h is not equal to 1 w.r.t. ord=$ord" #(3)
         for mono in monomials(h)
             @req sum(getXExponents(mono)) == d "Degree of $mono in $h is not equal to d=$d" #(1)
         end
@@ -173,4 +173,55 @@ function allAtOnceReduce(G, H, p, ord)
 
     @req isInitiallyReduced(H, ord) "H=$H is not initially reduced w.r.t. G=$G, H=$H, $p-t under ord=$ord" #(3) Check if H is initially reduced w.r.t. G, H, p-t under ord
     return H # Return H which is initially reduced w.r.t. G, H, p-t under ord
+end
+
+function initialReduce(F, p, ord)
+    # Apply Algorithm 4.7 from https://arxiv.org/abs/1512.02662 to reduce G w.r.t. H under ord
+    # Input: F ∈ R[t, x1, ..., xn] x-homogeneous generating set, p a prime number, ord a t-local monomial ordering on R
+    # Output: G ∈ R[t, x1, ..., xn] x-homogeneous & initially reduced groebner basis of <F> with respect to ord containing p-t
+    for f in F
+        d = sum(getXExponents(f)) # Get the degree of H[1] w.r.t. t
+        for mono in monomials(f)
+            @req sum(getXExponents(mono)) == d "Degree of $mono in $f is not equal to d=$d" #(1)
+        end
+    end
+
+    I = ideal(F) # Create an ideal I from F
+    G_primeprime = standard_basis(I, ordering=ord) # Get the standard basis of I w.r.t. ord
+    for g_primeprime in G_primeprime
+        d = sum(getXExponents(g_primeprime)) # Get the degree of H[1] w.r.t. t
+        for mono in monomials(g_primeprime)
+            @req sum(getXExponents(g_primeprime)) == d "Degree of $mono in $g_primeprime is not equal to d=$d" #(1)
+        end
+    end
+
+    G_prime = [] # Initialize G' to an empty list
+    for g in G_primeprime
+        g_lc = lc(g, ord) # Get the leading term of g w.r.t. ord
+        println("g_lc = ", g_lc) # Print the leading term of g w.r.t. ord
+        if (g_lc != 1) # Check if g is not a unit and not divisible by p
+            d, u, v = gcdx(g_lc, p) # Extended Euclid's algorithm to fing u,v such that u*g_lc + v*p = d
+            g_prime = (u * g) + (v * lm(g, ord) * (p - t)) # Normalise g to have LC(g) = 1 
+            push!(G_prime, g_prime) # Add g to G'
+        end
+    end
+
+    if length(G_prime) > 1
+        G_prime = minimise(G_prime, ord) # Minimise G' w.r.t. ord
+    end
+
+    G = []
+    while !isempty(G_prime)
+        #println("G_prime = ", G_prime) # Print G'
+        d = minimum([sum(getXExponents(g)) for g in G_prime]) # Get the minimum degree of G'
+        H_prime = filter(g -> sum(getXExponents(g)) == d, G_prime) # Get the elements of G' with degree d
+        G_prime = filter(g -> sum(getXExponents(g)) > d, G_prime) # Remove the elements of G' with degree d
+        H = allAtOnceReduce(G, H_prime, p, ord) # Apply Algorithm 4.5 to initially reduce H' w.r.t. G, H', p-t under ord
+        G = union(G, H) # Add H to G
+    end
+    G = push!(G, p - t) # Add p - t to G
+    return G # Return G which is initially reduced w.r.t. H under ord
+end
+function initially_reduce(F, p, ord)
+    return initialReduce(F, p, ord) # Apply Algorithm 4.7 to reduce G w.r.t. H under ord
 end
