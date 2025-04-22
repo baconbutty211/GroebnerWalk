@@ -155,13 +155,13 @@ function minimise(G, ord)
     # Minimise G w.r.t. ord
     # Input: G ∈ R[t, x1, ..., xn], ord a t-local monomial ordering on R
     # Output: G_min ∈ R[t, x1, ..., xn] is the minimised list of elements of G w.r.t. ord
-    @req length(G) > 0 "Number of terms is not greater than 0"
+    @req length(G) > 0 "Length of G=$G is not greater than 0"
     G = sortByLeadingMonomial(G, ord, true) # Sort G by their leading monomial w.r.t. ord
     G_min = [] # Initialize G_min to empty list
 
-    G_lm = [(lm(G[i], ord), g) for g in G] # Get the leading terms of G w.r.t. ord
-    for (g_lm, i) in G_lm
-        G_minus_g_lm = filter(_lm -> _lm != g_lm, G_lm) # Get the leading terms of G without g
+    G_lm = [(lm(g, ord), g) for g in G] # Get the leading terms of G w.r.t. ord
+    for (g_lm, g) in G_lm
+        G_minus_g_lm = filter(__lm -> __lm != g_lm, [_lm[1] for _lm in G_lm]) # Get the leading terms of G without g
         Q, r = reduce_with_quotients(g_lm, G_minus_g_lm, ordering=ord)
         if r == g_lm # Check if g divides a term in g'
             push!(G_min, g) # Add g to G_min if it does not divide a term in g'
@@ -174,7 +174,7 @@ function isMinimised(G, ord)
     # Minimise G w.r.t. ord
     # Input: G ∈ R[t, x1, ..., xn], ord a t-local monomial ordering on R
     # Output: G_min ∈ R[t, x1, ..., xn] is the minimised list of elements of G w.r.t. ord
-    @req length(G) > 0 "Number of terms is not greater than 0"
+    @req length(G) > 0 "Length of G=$G is not greater than 0"
     G = sortByLeadingMonomial(G, ord, true) # Sort G by their leading monomial w.r.t. ord
 
     G_lm = [lm(G[i], ord) for g in G] # Get the leading terms of G w.r.t. ord
@@ -209,7 +209,6 @@ function isInitiallyReduced(G, ord)
     # Input: G ∈ R[t, x1, ..., xn], H ∈ R[t, x1, ..., xn], p a prime number, > a t-local monomial ordering on R
     # Output: true if G is initially reduced w.r.t. p-t under >, false otherwise
     @req length(G) > 0 "Number of terms is not greater than 0"
-    @req length(H) > 0 "Number of terms is not greater than 0"
 
     G_prime = []
     for g in G
