@@ -224,3 +224,32 @@ function isInitiallyReduced(G, ord)
 
     return isReduced(G_prime, ord) # G is initially reduced w.r.t. p-t under >
 end
+
+function isXHomogeneous(f)
+    # Check if f is x-homogeneous
+    # Input: f ∈ R[t, x1, ..., xn]
+    # Output: true if f is x-homogeneous, false otherwise
+
+    d = sum(getXExponents(f)) # Get the degree of the first monomial of f
+    for mono in monomials(f)
+        if sum(getXExponents(mono)) != d
+            return false
+        end
+    end
+    return true # f is x-homogeneous
+end
+function isXHomogeneous(F)
+    # Check if f is x-homogeneous
+    # Input: f ∈ R[t, x1, ..., xn]
+    # Output: true if f is x-homogeneous, false otherwise
+
+    d = sum(getXExponents(F[1])) # Get the degree of the first monomial of f
+    for f in F
+        for mono in monomials(f)
+            if sum(getXExponents(mono)) != d
+                return false
+            end
+        end
+    end
+    return true # f is x-homogeneous
+end
