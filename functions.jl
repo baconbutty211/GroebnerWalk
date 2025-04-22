@@ -123,7 +123,7 @@ function collectCoefficients(f::MPolyRingElem, ord::MonomialOrdering)
     return f_prime # Return f' which is the list of the terms f_alpha(t) * x^alpha in f in the form [(f_alpha, x^alpha), ...] 
 end
 
-function sortByLeadingMonomial(F, ord::MonomialOrdering)
+function sortByLeadingMonomial(F, ord::MonomialOrdering, ascending::Bool=false)
     # Sort the elements of F by their leading monomial w.r.t. ord
     # Input: F ∈ R[t, x1, ..., xn]
     # Output: F_sorted ∈ R[t, x1, ..., xn] is the sorted list of elements of F by their leading monomial w.r.t. ord
@@ -136,8 +136,14 @@ function sortByLeadingMonomial(F, ord::MonomialOrdering)
             push!(F_sorted, f) # Add the first element to the sorted list
         else
             i = 1 # Initialize index to 1
-            while i <= length(F_sorted) && cmp(ord, lm(F_sorted[i], ord), lm(f, ord)) == 1
-                i += 1 # Increment index until the correct position is found
+            if (ascending)
+                while i <= length(F_sorted) && cmp(ord, lm(f, ord), lm(F_sorted[i], ord)) == 1
+                    i += 1 # Increment index until the correct position is found
+                end
+            else
+                while i <= length(F_sorted) && cmp(ord, lm(f, ord), lm(F_sorted[i], ord)) == -1
+                    i += 1 # Increment index until the correct position is found
+                end
             end
             insert!(F_sorted, i, f) # Insert f at the correct position in the sorted list
         end
