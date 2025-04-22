@@ -1,4 +1,4 @@
-include("GroebnerWalk.jl")
+include("./xHomoGWalk.jl")
 
 R, (t, x1, x2, x3, x4) = polynomial_ring(ZZ, ["t", "x1", "x2", "x3", "x4"])
 w = [-1, 1, 11, 3, 19]
@@ -10,7 +10,6 @@ ord = weight_ordering(w, lex(R))
 I = ideal([3 − t, 2 * x1^2 + 3 * x1 * x2 + 24 * x3 * x4, 8 * x1^3 + x2 * x3 * x4 + 18 * x3^2 * x4])
 G = standard_basis(I, ordering=ord)
 H = initial(collect(G), ord, ZZ.(w))
-
 
 println(G[1] == witness(H[1], H, G, ord))
 println(G[2] == witness(H[2], H, G, ord))
