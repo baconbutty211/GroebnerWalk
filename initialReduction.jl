@@ -185,6 +185,8 @@ function initialReduce(F, p, ord)
             @req sum(getXExponents(mono)) == d "Degree of $mono in $f is not equal to d=$d" #(1)
         end
     end
+    @req F[1] == parent(F[1])(p - t) "First element of F=$F is not $p - t"
+
 
     I = ideal(F) # Create an ideal I from F
     G_primeprime = standard_basis(I, ordering=ord) # Get the standard basis of I w.r.t. ord
@@ -194,6 +196,12 @@ function initialReduce(F, p, ord)
             @req sum(getXExponents(g_primeprime)) == d "Degree of $mono in $g_primeprime is not equal to d=$d" #(1)
         end
     end
+
+    println("typeof G'' = ", typeof(G_primeprime)) # Print G''
+    @req G_primeprime[1] == F[1] "First element of G'=$G_primeprime is not $p - t" # Check if the first element of G' is p - t
+    pt = G_primeprime[1] # Get the first element of G' which is p - t
+    G_primeprime = gens(G_primeprime)[2:end] # Remove p-t from of G'', add it back later
+    println("G'' = ", G_primeprime) # Print G'
 
     G_prime = [] # Initialize G' to an empty list
     for g in G_primeprime
@@ -219,7 +227,7 @@ function initialReduce(F, p, ord)
         H = allAtOnceReduce(G, H_prime, p, ord) # Apply Algorithm 4.5 to initially reduce H' w.r.t. G, H', p-t under ord
         G = union(G, H) # Add H to G
     end
-    G = push!(G, p - t) # Add p - t to G
+    G = push!(G, pt) # Add p - t to G
     return G # Return G which is initially reduced w.r.t. H under ord
 end
 function initially_reduce(F, p, ord)
