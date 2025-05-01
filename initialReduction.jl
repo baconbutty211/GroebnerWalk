@@ -197,16 +197,16 @@ function initialReduce(F, p, ord)
         end
     end
 
-    println("typeof G'' = ", typeof(G_primeprime)) # Print G''
+    #println("typeof G'' = ", typeof(G_primeprime)) # Print G''
     @req G_primeprime[1] == F[1] "First element of G'=$G_primeprime is not $p - t" # Check if the first element of G' is p - t
     pt = G_primeprime[1] # Get the first element of G' which is p - t
     G_primeprime = gens(G_primeprime)[2:end] # Remove p-t from of G'', add it back later
-    println("G'' = ", G_primeprime) # Print G'
+    #println("G'' = ", G_primeprime) # Print G'
 
     G_prime = [] # Initialize G' to an empty list
     for g in G_primeprime
         g_lc = lc(g, ord) # Get the leading term of g w.r.t. ord
-        println("g_lc = ", g_lc) # Print the leading term of g w.r.t. ord
+        #println("g_lc = ", g_lc) # Print the leading term of g w.r.t. ord
         if (g_lc != 1) # Check if g is not a unit and not divisible by p
             d, u, v = gcdx(g_lc, p) # Extended Euclid's algorithm to fing u,v such that u*g_lc + v*p = d
             g_prime = (u * g) + (v * lm(g, ord) * (p - t)) # Normalise g to have LC(g) = 1 
