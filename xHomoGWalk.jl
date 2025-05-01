@@ -51,6 +51,15 @@ function witness(h, H, G, ord)
 end
 
 
+function lift_optimised(Hprime, ordprime, H, ord, G)
+    Gprimeprime = [witness_optimised(hprime, H, G, ord) for hprime in Hprime]
+    #println(Gprimeprime)
+    # Assume h_0 = p 
+    p = coeff(H[1], 1)
+    Gprime = initially_reduce(Gprimeprime, p, ordprime) # No method for initial reduction is implemented in Oscar, See Algorithm 4.7 in https://arxiv.org/abs/1512.02662
+    Gprime = Gprimeprime
+    return Gprime
+end
 function lift_custom(Hprime, ordprime, H, ord, G)
     Gprimeprime = [witness(hprime, H, G, ord) for hprime in Hprime]
     #println(Gprimeprime)
@@ -61,10 +70,33 @@ function lift_custom(Hprime, ordprime, H, ord, G)
     return Gprime
 end
 
-function flip(G, H, v, ord_w)
+function flip_optimised(G, H, v, ord_w)
     @req typeof(ord_w) <: MonomialOrdering "ord_w is not a weight ordering"
 
     w = matrix(ord_w)[1, :] # w is the weight vector of the ordering
+    @req length(w) == nvars(parent(H[1])) "Length of weight vector w is not equal to number of variables in the polynomial ring"
+    @req length(w) == length(v) "Length of weight vector w must be equal to v"
+    @req w[1] < 0 "Weight vector w must be negative in the first entry"
+
+    @req length(G) == length(H) "Length of G and H must be equal"
+    @req H == initial(collect(G), ord_w, ZZ.(w)) "H is not the initial form of G w.r.t. w"
+
+    I = ideal(H)
+
+    R = parent(G[1])
+    ord_v = weight_ordering(v, lex(R)) # Create a new ordering with v as the weight vector
+    ord_wv = weight_ordering(w, ord_v) # Create a new ordering with w as the weight vector and ord_v as the tie-breaker
+
+    Hprime = standard_basis(I, ordering=ord_wv)
+    Gprime = lift_optimised(Hprime, ord_wv, H, ord, G)
+    return (Gprime, ord_wv)
+end
+function flip(G, H, v, ord_w)
+    @req typeof(ord_w) <: MonomialOrdering "ord_w is not a weight ordering"
+
+    w = Int.(matrix(ord_w)[1, :]) # w is the weight vector of the ordering
+
+    @req typeof(w) == Vector{Int} "w is not a vector of integers"
     @req length(w) == nvars(parent(H[1])) "Length of weight vector w is not equal to number of variables in the polynomial ring"
     @req length(w) == length(v) "Length of weight vector w must be equal to v"
     @req w[1] < 0 "Weight vector w must be negative in the first entry"
