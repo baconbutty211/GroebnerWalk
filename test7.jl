@@ -1,4 +1,5 @@
 include("./initialReduction.jl")
+include("./functions.jl")
 
 R, (t, x1, x2, x3) = polynomial_ring(ZZ, ["t", "x1", "x2", "x3"])
 ord = weight_ordering([-1, 1, 1, 1], lex(R))
