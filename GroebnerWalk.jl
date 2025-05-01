@@ -16,17 +16,18 @@ v = [3, 5, 1] # Outward pointing normal vector in positive orthant
 
 H = initial(collect(G), ord, ZZ.(w))
 
-G_expected = [2 - t, x * y^2 - t^2 * y^3, t^3 * y^2 - x^2, x^3 - t^5 * y^3] # Expected result of the flip
+G_expected = [2 - t, x^3 - t^5 * y^3, t^3 * y^2 - x^2, x * y^2 - t^2 * y^3] # Expected result of the flip
 
 (G_prime, ord_prime) = flip(G, H, v, ord)
-@req isInitiallyReduced(G_prime, ord) "G' is not initially reduced w.r.t. ord"
-@req G_pime[1] == G_expected[1] "G'[1]=$(G_pime[1]) is not equal to the expected result $(G_expected[1])"
-@req G_pime[2] == G_expected[2] "G'[2]=$(G_pime[2]) is not equal to the expected result $(G_expected[2])"
-@req G_pime[3] == G_expected[3] "G'[3]=$(G_pime[3]) is not equal to the expected result $(G_expected[3])"
-@req G_pime[4] == G_expected[4] "G'[4]=$(G_pime[4]) is not equal to the expected result $(G_expected[4])"
+@req isInitiallyReduced(G_prime, ord) "G'=$G_prime is not initially reduced w.r.t. ord=$ord"
+@req G_prime[1] == G_expected[1] "G'[1]=$(G_prime[1]) is not equal to the expected result $(G_expected[1])"
+@req G_prime[2] == G_expected[2] "G'[2]=$(G_prime[2]) is not equal to the expected result $(G_expected[2])"
+@req G_prime[3] == G_expected[3] "G'[3]=$(G_prime[3]) is not equal to the expected result $(G_expected[3])"
+@req G_prime[4] == G_expected[4] "G'[4]=$(G_prime[4]) is not equal to the expected result $(G_expected[4])"
 
 (G_prime, ord_prime) = flip_optimised(G, H, v, ord)
-@req G_pime[1] == G_expected[1] "G'[1]=$(G_pime[1]) is not equal to the expected result $(G_expected[1])"
-@req G_pime[2] == G_expected[2] "G'[2]=$(G_pime[2]) is not equal to the expected result $(G_expected[2])"
-@req G_pime[3] == G_expected[3] "G'[3]=$(G_pime[3]) is not equal to the expected result $(G_expected[3])"
-@req G_pime[4] == G_expected[4] "G'[4]=$(G_pime[4]) is not equal to the expected result $(G_expected[4])"
+@req isInitiallyReduced(G_prime, ord) "G'=$G_prime is not initially reduced w.r.t. ord=$ord"
+@req G_prime[1] == G_expected[1] "G'[1]=$(G_prime[1]) is not equal to the expected result $(G_expected[1])"
+@req G_prime[2] == G_expected[2] "G'[2]=$(G_prime[2]) is not equal to the expected result $(G_expected[2])"
+@req G_prime[3] == G_expected[3] "G'[3]=$(G_prime[3]) is not equal to the expected result $(G_expected[3])"
+@req G_prime[4] == G_expected[4] "G'[4]=$(G_prime[4]) is not equal to the expected result $(G_expected[4])"
