@@ -3,14 +3,15 @@ include("./xHomoGWalk.jl")
 
 R, (t, x, y) = polynomial_ring(ZZ, ["t", "x", "y"])
 u = [-1, 1, 1] # Initial Weight vector for the ordering
-ord_u = weight_ordering(u, lex(R)) # Create a new ordering with u as the weight vector
+ord_t_lex = matrix_ordering(R, [0 1 0; 0 0 1; -1 0 0]) # t-local lexicographic ordering
+ord_u = weight_ordering(u, ord_t_lex) # Create a new ordering with u as the weight vector
 
 I = ideal([2 - t, x * y^2 - t^2 * y^3, x^2 - t^3 * y^2])
 G = [2 - t, x * y^2 - t^2 * y^3, x^2 - t^3 * y^2, t^3 * y^4] # Grobner basis of I w.r.t. >_u
 
 
 w = [-4, 1, 7] # Weight vector on the boundary of Grobner cone for the ordering
-ord = weight_ordering(w, lex(R))
+ord = weight_ordering(w, ord_t_lex)
 v = [3, 5, 1] # Outward pointing normal vector in positive orthant
 
 H = initial(collect(G), ord, ZZ.(w))
