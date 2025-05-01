@@ -35,7 +35,7 @@ function witness_optimised(h, H, G, ord)
     Q = pushfirst!(vec(Q), q0)
 
     f = sum([qi * gi for (qi, gi) in zip(Q, G)]) # g = q0*g0 + q1*g1 + ... qn*gn. sum(Q .* G) - (ERROR) Broadcasting for type Vector{ZZMPolyRingElem} not implemented
-    @req h == initial(f, ord, matrix(ord)[1, :]) "Initial form of Witness is not equal to h"
+    @req h == initial(f, ord, matrix(ord)[1, :]) "Initial form of Witness in_{$(matrix(ord)[1, :])}($f) is not equal to $h"
     return f
 end
 
@@ -73,7 +73,7 @@ end
 function flip_optimised(G, H, v, ord_w)
     @req typeof(ord_w) <: MonomialOrdering "ord_w is not a weight ordering"
 
-    w = matrix(ord_w)[1, :] # w is the weight vector of the ordering
+    w = Int.(matrix(ord_w)[1, :]) # w is the weight vector of the ordering
     @req length(w) == nvars(parent(H[1])) "Length of weight vector w is not equal to number of variables in the polynomial ring"
     @req length(w) == length(v) "Length of weight vector w must be equal to v"
     @req w[1] < 0 "Weight vector w must be negative in the first entry"
