@@ -24,14 +24,18 @@ function witness_optimised(h, H, G, ord)
     hbar = phi(h) # Convert h to Finite field mod h0
     Hbar = [phi(_h) for _h in H[2:end]] # Convert H\{h0} to Finite field mod h0
 
-    q0 = div(h, H[1]) # Divide h by h0 to get q0
-
     u, Q, r = reduce_with_quotients_and_unit(hbar, Hbar, ordering=ord) # Apply division algorithm to h w.r.t. H\{h0} to get {q1, ..., qn} (in finite field for performance reasons)
-    @req iszero(r) "Remainder is not zero"
+    @req iszero(r) "Remainder r=$r is not zero"
     @req isone(u) "Unit is not one"
 
     phi_inv = hom(S, R, c -> lift(ZZ, c), gens(R)) # homomorphism from S to R
     Q = [phi_inv(q) for q in Q] # Lift q1, ..., qn back to original ring (ZZ[x1, ..., xn])
+
+    u, Q0, r = reduce_with_quotients_and_unit(h - sum([qi * hi for (qi, hi) in zip(Q, H[2:end])]), [H[1]], ordering=ord) # Divide h by h0 to get q0 and remainder r = hbar
+    @req iszero(r) "Remainder r=$r is not zero"
+    @req isone(u) "Unit is not one"
+
+    q0 = Q0[1] # h = q0*h0 + hbar
     Q = pushfirst!(vec(Q), q0)
 
     f = sum([qi * gi for (qi, gi) in zip(Q, G)]) # g = q0*g0 + q1*g1 + ... qn*gn. sum(Q .* G) - (ERROR) Broadcasting for type Vector{ZZMPolyRingElem} not implemented
