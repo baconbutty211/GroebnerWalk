@@ -61,7 +61,7 @@ function lift_optimised(Hprime, ordprime, H, ord, G)
     # Assume h_0 = p 
     p = coeff(H[1], 1)
     Gprime = initially_reduce(Gprimeprime, p, ordprime) # No method for initial reduction is implemented in Oscar, See Algorithm 4.7 in https://arxiv.org/abs/1512.02662
-    Gprime = Gprimeprime
+    #Gprime = Gprimeprime
     return Gprime
 end
 function lift_custom(Hprime, ordprime, H, ord, G)
@@ -70,7 +70,7 @@ function lift_custom(Hprime, ordprime, H, ord, G)
     # Assume h_0 = p 
     p = coeff(H[1], 1)
     Gprime = initially_reduce(Gprimeprime, p, ordprime) # No method for initial reduction is implemented in Oscar, See Algorithm 4.7 in https://arxiv.org/abs/1512.02662
-    Gprime = Gprimeprime
+    #Gprime = Gprimeprime
     return Gprime
 end
 
@@ -88,7 +88,8 @@ function flip_optimised(G, H, v, ord_w)
     I = ideal(H)
 
     R = parent(G[1])
-    ord_v = weight_ordering(v, lex(R)) # Create a new ordering with v as the weight vector
+    ord_t_lex = getTLocalLexOrdering(R) # t-local lexicographic ordering (of the form [0 I; -1 0])
+    ord_v = weight_ordering(v, ord_t_lex) # Create a new ordering with v as the weight vector
     ord_wv = weight_ordering(w, ord_v) # Create a new ordering with w as the weight vector and ord_v as the tie-breaker
 
     Hprime = standard_basis(I, ordering=ord_wv)
@@ -111,10 +112,35 @@ function flip(G, H, v, ord_w)
     I = ideal(H)
 
     R = parent(G[1])
-    ord_v = weight_ordering(v, lex(R)) # Create a new ordering with v as the weight vector
+    ord_t_lex = getTLocalLexOrdering(R) # t-local lexicographic ordering
+    ord_v = weight_ordering(v, ord_t_lex) # Create a new ordering with v as the weight vector
     ord_wv = weight_ordering(w, ord_v) # Create a new ordering with w as the weight vector and ord_v as the tie-breaker
 
     Hprime = standard_basis(I, ordering=ord_wv)
     Gprime = lift_custom(Hprime, ord_wv, H, ord, G)
     return (Gprime, ord_wv)
+end
+
+function getTLocalLexOrdering(R)
+    # Get the t-local lexicographic ordering on R[t, x1, ..., xn]
+    # Input: n_vars = n+1 is the number of variables in the polynomial ring
+    # Output: ord ∈ R[t, x1, ..., xn] is the t-local lexicographic ordering on R[t, x1, ..., xn]
+    n_vars = nvars(R) # Get the number of variables in the polynomial ring
+    @req n_vars > 1 "Number of variables in the polynomial ring must be greater than 1"
+    M_t_lex = Matrix{Int}(undef, n_vars, n_vars) # t-local lexicographic matrix
+    for i = 1:n_vars
+        if i == n_vars
+            M_t_lex[i, 1] = -1 # row n of t-local lexicographic matrix
+        else
+            M_t_lex[i, 1] = 0 # row n of t-local lexicographic matrix
+        end
+        for j = 2:n_vars
+            if j == i + 1
+                M_t_lex[i, j] = 1 # row n of t-local lexicographic matrix
+            else
+                M_t_lex[i, j] = 0 # row n of t-local lexicographic matrix
+            end
+        end
+    end
+    return matrix_ordering(R, M_t_lex) # Return the t-local lexicographic ordering
 end
