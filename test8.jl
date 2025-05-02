@@ -1,2 +1,0 @@
-# Test minimise()
-# Test isMinimised()
